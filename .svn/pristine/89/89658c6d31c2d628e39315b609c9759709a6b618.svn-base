@@ -1,0 +1,24 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace TourTravels.Entities.ViewModels
+{
+    public class CabView
+    {
+        public long CabID { get; set; }
+        public string CabName { get; set; }
+        public string CabNo { get; set; }
+        public long CabTypeID { get; set; }
+        public string CabTypeName { get; set; }
+        public string CabDriverName { get; set; }
+        public string LicenseNo { get; set; }
+    }
+    public class CabVM
+    {
+        public IEnumerable<CabView> Cabs { get; set; }
+        public int TotalRecords { get; set; }
+    }
+}

@@ -1,0 +1,96 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using TourTravels.Entities.Dal;
+using TourTravels.Entities.Models;
+using TourTravels.Entities.ViewModels;
+
+namespace TourTravels.API.Areas.Admin.Controllers
+{
+    [Authorize]
+    [RoutePrefix("api/admin/packageconfig")]
+    public class PackageConfigController : ApiController
+    {
+        dalTourPackage objPack = new dalTourPackage();
+
+        [HttpPost]
+        [Route("SavePackage")]
+        public async Task<string> SavePackage(utblTourPackage model)
+        {
+            if (ModelState.IsValid)
+            {
+                return await objPack.SavePackageAsync(model);
+            }
+            string messages = string.Join("; ", ModelState.Values
+                                         .SelectMany(x => x.Errors)
+                                         .Select(x => x.ErrorMessage));
+            return "Operation Error: " + messages;
+        }
+        [HttpGet]
+        [Route("PackageItineraries")]
+        public async Task<IEnumerable<utblTourPackageItinerary>> PackageItineraries(long id)
+        {
+            return await objPack.GetItinerariesByIDAsync(id);
+        }
+        [HttpGet]
+        [Route("PackageByID")]
+        public async Task<utblTourPackage> PackageByID(long id)
+        {
+            return await objPack.GetPackageByIDAsync(id);
+        }
+        [HttpGet]
+        [Route("PackageBrief")]
+        public async Task<PackageBriefInfo> PackageBrief(long id)
+        {
+            return await objPack.GetPackageBriefInfoAsync(id);
+        }
+        [HttpPost]
+        [Route("SaveItineraries")]
+        public async Task<string> SaveItineraries(IEnumerable<utblTourPackageItinerary> model)
+        {
+            if (ModelState.IsValid)
+            {
+                return await objPack.SaveItinerariesAsync(model);
+            }
+            string messages = string.Join("; ", ModelState.Values
+                                         .SelectMany(x => x.Errors)
+                                         .Select(x => x.ErrorMessage));
+            return "Operation Error: " + messages;
+        }
+        [HttpGet]
+        [Route("PackageImages")]
+        public async Task<TourPackageImageVM> PackageImages(long PackageID, int PageNo, int PageSize)
+        {
+            return await objPack.GetPackageImagesAsync(PackageID, PageNo, PageSize);
+        }
+        [HttpPost]
+        [Route("SaveImage")]
+        public async Task<string> SaveImage(utblTourPackageImage model)
+        {
+            if (ModelState.IsValid)
+            {
+                return await objPack.SavePackageImageAsync(model);
+            }
+            string messages = string.Join("; ", ModelState.Values
+                                         .SelectMany(x => x.Errors)
+                                         .Select(x => x.ErrorMessage));
+            return "Operation Error: " + messages;
+        }
+        [HttpGet]
+        [Route("ImageByID")]
+        public async Task<utblTourPackageImage> ImageByID(long id)
+        {
+            return await objPack.GetPackageImageByID(id);
+        }
+        [HttpDelete]
+        [Route("DeleteImage")]
+        public async Task<string> DeleteImage(long id)
+        {
+            return await objPack.DeletePackageImageByID(id);
+        }
+    }
+}

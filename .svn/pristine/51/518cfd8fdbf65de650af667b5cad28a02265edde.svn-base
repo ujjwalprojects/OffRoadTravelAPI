@@ -1,0 +1,48 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TourTravels.Entities.Models;
+
+namespace TourTravels.Entities.Dal
+{
+    public class dalClientEnquiry
+    {
+        EFDBContext objDB = new EFDBContext();
+
+        public async Task<string> SaveDirectClientEnqAsync(utblClientEnquirie model)
+        {
+            try
+            {
+                var parClientName = new SqlParameter("@ClientName", model.ClientName);
+                var parClientEmail = new SqlParameter("@ClientEmail", model.ClientEmail);
+                var parClientPhoneNo = new SqlParameter("@ClientPhoneNo", model.ClientPhoneNo);
+                var parRefPackageID = new SqlParameter("@RefPackageID", model.RefPackageID);
+                var parNoOfDays = new SqlParameter("@NoOfDays", model.NoOfDays);
+                var parRemarks = new SqlParameter("@Remarks", model.Remarks);
+                var parDateOfArrival = new SqlParameter("@DateOfArrival", model.DateOfArrival);
+                var parNoOfAdult = new SqlParameter("@NoOfAdult", model.NoOfAdult);
+                var parNoOfChildren = new SqlParameter("@NoOfChildren", model.NoOfChildren);
+                var parHotelTypeID = new SqlParameter("@HotelTypeID", DBNull.Value);
+                if(model.HotelTypeID != null || model.HotelTypeID != 0)
+                {
+                    parHotelTypeID = new SqlParameter("@HotelTypeID", model.HotelTypeID);
+                }
+                var parCabTypeID = new SqlParameter("@CabTypeID", DBNull.Value);
+                if(model.CabTypeID != null || model.CabTypeID != 0)
+                {
+                    parCabTypeID = new SqlParameter("@CabTypeID", model.CabTypeID);
+                }
+                var parTransDate = new SqlParameter("@TransDate", model.TransDate);
+                return await objDB.Database.SqlQuery<string>("udspDirectClientEnquiryInsert @ClientName, @ClientEmail,@ClientPhoneNo,@RefPackageID,@NoOfDays,@Remarks,@DateOfArrival,@NoOfAdult,@NoOfChildren,@HotelTypeID,@CabTypeID,@TransDate",
+                    parClientName, parClientEmail, parClientPhoneNo, parRefPackageID, parNoOfDays, parRemarks, parDateOfArrival, parNoOfAdult, parNoOfChildren, parHotelTypeID, parCabTypeID,parTransDate).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+    }
+}

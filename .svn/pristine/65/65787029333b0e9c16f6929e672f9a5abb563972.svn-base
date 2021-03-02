@@ -1,0 +1,159 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TourTravels.Entities.Models;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using TourTravels.Entities.ViewModels;
+
+namespace TourTravels.Entities.Dal
+{
+    public class dalCabConfig
+    {
+        EFDBContext db = new EFDBContext();
+
+        #region Cab Types
+        public async Task<IEnumerable<utblMstCabType>> GetCabTypesAsync()
+        {
+            return await db.utblMstCabTypes.ToListAsync();
+        }
+        public async Task<string> SaveCabTypeAsync(utblMstCabType model)
+        {
+            try
+            {
+                if (model.CabTypeID == 0)
+                {
+                    db.utblMstCabTypes.Add(model);
+                    await db.SaveChangesAsync();
+                    return "New Cab Type Added";
+                }
+                else
+                {
+                    utblMstCabType curObj = await db.utblMstCabTypes.FindAsync(model.CabTypeID);
+                    curObj.CabTypeName = model.CabTypeName;
+                    curObj.CabTypeDesc = model.CabTypeDesc;
+                    curObj.BaseFare = model.BaseFare;
+                    await db.SaveChangesAsync();
+                    return "Cab Type Details Updated";
+                }
+            }
+            catch (Exception ex)
+            {
+                return "Error : " + ex.Message;
+            }
+        }
+        public async Task<utblMstCabType> GetCabTypeByIDAsync(long id)
+        {
+            return await db.utblMstCabTypes.Where(x => x.CabTypeID == id).FirstOrDefaultAsync();
+        }
+        public async Task<string> DeleteCabTypeAsync(long id)
+        {
+            try
+            {
+                utblMstCabType curObj = await db.utblMstCabTypes.FindAsync(id);
+                db.utblMstCabTypes.Remove(curObj);
+                await db.SaveChangesAsync();
+                return "Cab Type Details Removed";
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Errors.Count > 0) // Assume the interesting stuff is in the first error
+                {
+                    switch (ex.Errors[0].Number)
+                    {
+                        case 547: // Foreign Key violation
+                            return "This record has dependencies on other records, so cannot be removed.";
+                        default:
+                            return "Error: " + ex.Message;
+                    }
+                }
+                return "Error while operation. Error Message: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+        #endregion
+
+        #region Cabs
+        public async Task<CabVM> GetCabsAsync(int pageno, int pagesize, string sterm)
+        {
+            CabVM model = new CabVM();
+            var parStart = new SqlParameter("@Start", (pageno - 1) * pagesize);
+            var parEnd = new SqlParameter("@PageSize", pagesize);
+
+            var parSearchTerm = new SqlParameter("@SearchTerm", DBNull.Value);
+            if (!(sterm == null || sterm == ""))
+                parSearchTerm.Value = sterm;
+            // setting stored procedure OUTPUT value
+            // This return total number of rows, and avoid two database call for data and total number of rows 
+            var spOutput = new SqlParameter
+            {
+                ParameterName = "@TotalCount",
+                SqlDbType = System.Data.SqlDbType.BigInt,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            model.Cabs = await db.Database.SqlQuery<CabView>("udspMstCabPaged @Start, @PageSize,@SearchTerm, @TotalCount out",
+                parStart, parEnd, parSearchTerm, spOutput).ToListAsync();
+            model.TotalRecords = int.Parse(spOutput.Value.ToString());
+            return model;
+        }
+        public async Task<string> SaveCabAsync(utblMstCab model)
+        {
+            try
+            {
+
+                var parCabID = new SqlParameter("@CabID", model.CabID);
+                var parCabName = new SqlParameter("@CabName", model.CabName);
+                var parCabNo = new SqlParameter("@CabNo", model.CabNo);
+                var parTypeID = new SqlParameter("@CabTypeID", model.CabTypeID);
+                var parDriver = new SqlParameter("@CabDriverName", model.CabDriverName);
+                var parLicense = new SqlParameter("@LicenseNo", model.LicenseNo ?? "");
+
+                return await db.Database.SqlQuery<string>("udspMstCabSave @CabID, @CabName, @CabNo, @CabTypeID, @CabDriverName, @LicenseNo",
+                    parCabID, parCabName, parCabNo, parTypeID, parDriver, parLicense).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+        public async Task<utblMstCab> GetCabByIDAsync(long id)
+        {
+            return await db.utblMstCabs.Where(x => x.CabID == id).FirstOrDefaultAsync();
+        }
+        public async Task<string> DeleteCabAsync(long id)
+        {
+            try
+            {
+                utblMstCab curObj = await db.utblMstCabs.FindAsync(id);
+                db.utblMstCabs.Remove(curObj);
+                await db.SaveChangesAsync();
+                return "Cab Details Removed";
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Errors.Count > 0) // Assume the interesting stuff is in the first error
+                {
+                    switch (ex.Errors[0].Number)
+                    {
+                        case 547: // Foreign Key violation
+                            return "This record has dependencies on other records, so cannot be removed.";
+                        default:
+                            return "Error: " + ex.Message;
+                    }
+                }
+                return "Error while operation. Error Message: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+        #endregion
+    }
+}

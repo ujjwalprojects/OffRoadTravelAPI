@@ -1,0 +1,31 @@
+﻿using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin.Security;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using TourTravels.API.Models;
+using TourTravels.Entities.Dal;
+using TourTravels.Entities.ViewModels;
+
+namespace TourTravels.API.Areas.General.Controllers
+{
+    
+    [RoutePrefix("api/general/tourpackage")]
+    public class GenTourPackageController : ApiController
+    {
+        dalTourPackage objDAL = new dalTourPackage();
+
+        [HttpGet]
+        [Route("GenTourPackageList")]
+        public async Task<GenTourPackageVM> GenTourPackageList(int PageNo, int PageSize, string SearchTerm)
+        {
+            return await objDAL.GetGenTourPackageListAsync(PageNo, PageSize, SearchTerm);
+        }
+    }
+}

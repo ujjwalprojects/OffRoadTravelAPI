@@ -1,0 +1,73 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using TourTravels.Entities.Dal;
+using TourTravels.Entities.Models;
+using TourTravels.Entities.ViewModels;
+
+namespace TourTravels.API.Areas.General.Controllers
+{
+    [RoutePrefix("api/general/clientenquiry")]
+    public class ClientEnquiryController : ApiController
+    {
+        dalClientEnquiry objDAL = new dalClientEnquiry();
+        dalHotelConfig objHotel = new dalHotelConfig();
+        dalCabConfig objCab = new dalCabConfig();
+        dalConfigurations objConfig = new dalConfigurations();
+        dalTourPackage objTourpkg = new dalTourPackage();
+
+        [HttpPost]
+        [Route("SaveDirectClientEnq")]
+        public async Task<string> SaveDirectClientEnq(utblClientEnquirie model)
+        {
+            if (ModelState.IsValid)
+            {
+                return await objDAL.SaveDirectClientEnqAsync(model);
+            }
+            string messages = string.Join("; ", ModelState.Values
+                                         .SelectMany(x => x.Errors)
+                                         .Select(x => x.ErrorMessage));
+            return "Operation Error: " + messages;
+        }
+        [HttpGet]
+        [Route("HotelTypes")]
+        public async Task<IEnumerable<utblMstHotelType>> HotelTypes()
+        {
+            return await objHotel.GetHotelTypesAsync();
+        }
+        [HttpGet]
+        [Route("CabTypes")]
+        public async Task<IEnumerable<utblMstCabType>> CabTypes()
+        {
+            return await objCab.GetCabTypesAsync();
+        }
+        [HttpGet]
+        [Route("AllItineraries")]
+        public async Task<IEnumerable<utblMstItinerarie>> AllItineraries()
+        {
+            return await objConfig.GetAllItinerariesAsync();
+        }
+        [HttpGet]
+        [Route("AllDestinations")]
+        public async Task<IEnumerable<utblMstDestination>> AllDestinations()
+        {
+            return await objConfig.GetAllDestinationsAsync();
+        }
+        [HttpGet]
+        [Route("PackageActivities")]
+        public async Task<IEnumerable<PackageActivities>> PackageActivites(long id)
+        {
+            return await objTourpkg.GetPackageActivitiesAsync(id);
+        }
+        [HttpGet]
+        [Route("itinerarybyid")]
+        public async Task<utblMstItinerarie> ItineraryByID(long ItineraryID)
+        {
+            return await objConfig.GetItineraryByIDAsync(ItineraryID);
+        }
+    }
+}

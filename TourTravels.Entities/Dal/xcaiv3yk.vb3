@@ -1,0 +1,316 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TourTravels.Entities.Models;
+using System.Data.Entity;
+using System.Data;
+using TourTravels.Entities.Utility;
+using TourTravels.Entities.ViewModels;
+
+namespace TourTravels.Entities.Dal
+{
+    public class dalTourPackage
+    {
+        EFDBContext db = new EFDBContext();
+
+        public async Task<string> SavePackageAsync(utblTourPackage model)
+        {
+            try
+            {
+                var parPackID = new SqlParameter("@PackageID", model.PackageID);
+                var parPackName = new SqlParameter("@PackageName", model.PackageName);
+                var parPackType = new SqlParameter("@PackageTypeID", model.PackageTypeID);
+                var parPackRouting = new SqlParameter("@PackageRouting", model.PackageRouting ?? "");
+                var parPickup = new SqlParameter("@PickupPoint", model.PickupPoint ?? "");
+                var parDrop = new SqlParameter("@DropPoint", model.DropPoint ?? "");
+                var parDays = new SqlParameter("@TotalDays", model.TotalDays);
+                var parBaseFare = new SqlParameter("@BaseFare", model.BaseFare);
+                var parPackDesc = new SqlParameter("@PackageDesc", model.PackageDesc ?? "");
+                var parPackLink = new SqlParameter("@LinkText", model.LinkText);
+                var parMetaText = new SqlParameter("@MetaText", model.MetaText ?? "");
+                var parMetaDesc = new SqlParameter("@MetaDesc", model.MetaDesc ?? "");
+
+                return await db.Database.SqlQuery<string>("udspTourPackageSave @PackageID, @PackageName, @PackageTypeID, @PackageRouting, @PickupPoint, @DropPoint"
+                    + ",@TotalDays, @BaseFare, @PackageDesc, @LinkText, @MetaText, @MetaDesc",
+                    parPackID, parPackName, parPackType, parPackRouting, parPickup, parDrop,
+                    parDays, parBaseFare, parPackDesc, parPackLink, parMetaText, parMetaDesc).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+        public async Task<IEnumerable<utblTourPackageItinerary>> GetItinerariesByIDAsync(long id)
+        {
+            return await db.utblTourPackageItineraries.Where(x => x.PackageID == id).OrderBy(x => x.DayNo).ToListAsync();
+        }
+        public async Task<utblTourPackage> GetPackageByIDAsync(long id)
+        {
+            return await db.utblTourPackages.Where(x => x.PackageID == id).FirstOrDefaultAsync();
+        }
+        public async Task<PackageBriefInfo> GetPackageBriefInfoAsync(long id)
+        {
+            return await db.utblTourPackages.Where(x => x.PackageID == id)
+                .Select(x => new PackageBriefInfo() { PackageID = x.PackageID, PackageName = x.PackageName, TotalDays = x.TotalDays })
+                .FirstOrDefaultAsync();
+        }
+        public async Task<string> SaveItinerariesAsync(IEnumerable<utblTourPackageItinerary> model)
+        {
+            try
+            {
+                var parPackID = new SqlParameter("@PackageID", model.ElementAt(0).PackageID);
+
+                ConvertListToDT objDT = new ConvertListToDT();
+                DataTable dt = objDT.ConvertIEnumerableToDataTable(model);
+
+                var parSubDT = new SqlParameter("@ItineraryTable", dt);
+                parSubDT.SqlDbType = SqlDbType.Structured;
+                parSubDT.TypeName = "dbo.PackageItineraryType";
+
+                return await db.Database.SqlQuery<string>("udspTourPackageItinerarySave @PackageID, @ItineraryTable", parPackID, parSubDT).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+
+
+        #region package offer
+        public async Task<PackageOfferVM> GetPackageOfferListAsync(int pageno, int pagesize, string sterm)
+        {
+            PackageOfferVM model = new PackageOfferVM();
+            var parStart = new SqlParameter("@Start", (pageno - 1) * pagesize);
+            var parEnd = new SqlParameter("@PageSize", pagesize);
+
+            var parSearchTerm = new SqlParameter("@SearchTerm", DBNull.Value);
+            if (!(sterm == null || sterm == ""))
+                parSearchTerm.Value = sterm;
+            // setting stored procedure OUTPUT value
+            // This return total number of rows, and avoid two database call for data and total number of rows 
+            var spOutput = new SqlParameter
+            {
+                ParameterName = "@TotalCount",
+                SqlDbType = System.Data.SqlDbType.BigInt,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            model.PackageOfferList = await db.Database.SqlQuery<PackageOfferView>("udspPackageOfferList @Start, @PageSize,@SearchTerm, @TotalCount out",
+                parStart, parEnd, parSearchTerm, spOutput).ToListAsync();
+            model.TotalRecords = int.Parse(spOutput.Value.ToString());
+            return model;
+        }
+
+        public List<PackageDD> GetPackageListAsync()
+        {
+            List<PackageDD> obj = new List<PackageDD>();
+            obj = db.Database.SqlQuery<PackageDD>("select PackageID,PackageName from utblTourPackages").ToList();
+            return obj;
+        }
+        public async Task<string> SavePackageOfferAsync(SavePackageOffer model)
+        {
+            try
+            {
+                ConvertListToDT objDT = new ConvertListToDT();
+                DataTable typeDt = new DataTable();
+
+                var parPOffID = new SqlParameter("@PackageOfferID", model.PackageOffer.PackageOfferID);
+                var parPacID = new SqlParameter("@PackageID", DBNull.Value);
+                if(model.PackageID!=null)
+                    parPacID = new SqlParameter("@PackageID", model.PackageID);
+                var parPOffer = new SqlParameter("@OfferPercent", model.PackageOffer.OfferPercent);
+                var parStart = new SqlParameter("@StartDate", model.PackageOffer.StartDate);
+                var parEnd = new SqlParameter("@EndDate", model.PackageOffer.EndDate);
+                List<IDModel> tyepList = model.PackageID.Select(x => new IDModel()
+                {
+                    ID = Convert.ToInt64(x)
+                }).ToList();
+                typeDt = objDT.ConvertIEnumerableToDataTable(tyepList);
+
+                var parSubDT = new SqlParameter("@PackageOfferTable", typeDt);
+                parSubDT.SqlDbType = SqlDbType.Structured;
+                parSubDT.TypeName = "dbo.IDType";
+
+                return await db.Database.SqlQuery<string>("udspPackageOfferAdd @PackageOfferID,@PackageID, @OfferPercent, @StartDate, @EndDate,@PackageOfferTable",
+                    parPOffID,parPacID, parPOffer, parStart, parEnd, parSubDT).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+
+        public async Task<utblPackageOffer> GetPackageOfferByIDAsync(long id)
+        {
+            return await db.utblPackageOffers.Where(x => x.PackageOfferID == id).FirstOrDefaultAsync();
+        }
+        public async Task<string> EditPackageOfferAsync(EditPackageOffer model)
+        {
+            try
+            {
+                var parPOffID = new SqlParameter("@PackageOfferID", model.PackageOffer.PackageOfferID);
+                var parPacID = new SqlParameter("@PackageID", model.PackageOffer.PackageID);
+                var parPOffer = new SqlParameter("@OfferPercent", model.PackageOffer.OfferPercent);
+                var parStart = new SqlParameter("@StartDate", model.PackageOffer.StartDate);
+                var parEnd = new SqlParameter("@EndDate", model.PackageOffer.EndDate);
+                return await db.Database.SqlQuery<string>("udspPackageOfferEdit @PackageOfferID,@PackageID, @OfferPercent, @StartDate, @EndDate",
+                    parPOffID, parPacID, parPOffer, parStart, parEnd).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+
+        public async Task<string> DeletePackageOfferAsync(long POID)
+        {
+            try
+            {
+                utblPackageOffer curObj = await db.utblPackageOffers.FindAsync(POID);
+                db.utblPackageOffers.Remove(curObj);
+                await db.SaveChangesAsync();
+                return "Package Details Removed";
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Errors.Count > 0) // Assume the interesting stuff is in the first error
+                {
+                    switch (ex.Errors[0].Number)
+                    {
+                        case 547: // Foreign Key violation
+                            return "This record has dependencies on other records, so cannot be removed.";
+                        default:
+                            return "Error: " + ex.Message;
+                    }
+                }
+                return "Error while operation. Error Message: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+
+        #endregion
+        public async Task<TourPackageImageVM> GetPackageImagesAsync(long packageid, int pageno, int pagesize)
+        {
+            TourPackageImageVM model = new TourPackageImageVM();
+            var parPackID = new SqlParameter("@PackageID", packageid);
+            var parStart = new SqlParameter("@Start", (pageno - 1) * pagesize);
+            var parEnd = new SqlParameter("@PageSize", pagesize);
+
+            // setting stored procedure OUTPUT value
+            // This return total number of rows, and avoid two database call for data and total number of rows 
+            var spOutput = new SqlParameter
+            {
+                ParameterName = "@TotalCount",
+                SqlDbType = System.Data.SqlDbType.BigInt,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            model.PackageImages = await db.Database.SqlQuery<utblTourPackageImage>("udspTourPackageImagePaged @PackageID, @Start, @PageSize, @TotalCount out",
+                parPackID, parStart, parEnd, spOutput).ToListAsync();
+            model.TotalRecords = int.Parse(spOutput.Value.ToString());
+            return model;
+        }
+        public async Task<string> SavePackageImageAsync(utblTourPackageImage model)
+        {
+            try
+            {
+                if (model.PackageImageID == 0)
+                {
+                    db.utblTourPackageImages.Add(model);
+                    await db.SaveChangesAsync();
+                    return "Tour Package Image Added";
+                }
+                else
+                {
+                    utblTourPackageImage curObj = await db.utblTourPackageImages.FindAsync(model.PackageImageID);
+                    curObj.PhotoNormalPath = model.PhotoNormalPath;
+                    curObj.PhotoThumbPath = model.PhotoThumbPath;
+                    curObj.PhotoCaption = model.PhotoCaption;
+                    await db.SaveChangesAsync();
+                    return "Tour Package Image Updated";
+                }
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+        public async Task<utblTourPackageImage> GetPackageImageByIDAsync(long id)
+        {
+            return await db.utblTourPackageImages.Where(x => x.PackageImageID == id).FirstOrDefaultAsync();
+        }
+        public async Task<string> DeletePackageImageByIDAsync(long id)
+        {
+            try
+            {
+                utblTourPackageImage curObj = await db.utblTourPackageImages.FindAsync(id);
+                string photopath = curObj.PhotoNormalPath;
+
+                db.utblTourPackageImages.Remove(curObj);
+                await db.SaveChangesAsync();
+                return photopath;
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Errors.Count > 0) // Assume the interesting stuff is in the first error
+                {
+                    switch (ex.Errors[0].Number)
+                    {
+                        case 547: // Foreign Key violation
+                            return "This record has dependencies on other records, so cannot be removed.";
+                        default:
+                            return "Error: " + ex.Message;
+                    }
+                }
+                return "Error while operation. Error Message: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+        public async Task<IEnumerable<PackageActivities>> GetPackageActivitiesAsync(long id)
+        {
+            var parPackID = new SqlParameter("@PackageID", id);
+            return await db.Database.SqlQuery<PackageActivities>("select * from dbo.udfGetTourPackageActivities(@PackageID)", parPackID).ToListAsync();
+        }
+
+
+        #region Gen TourPackage
+        public async Task<GenTourPackageVM> GetGenTourPackageListAsync(int pageno, int pagesize, string sterm)
+        {
+            GenTourPackageVM model = new GenTourPackageVM();
+            var parStart = new SqlParameter("@Start", (pageno - 1) * pagesize);
+            var parEnd = new SqlParameter("@PageSize", pagesize);
+
+            var parSearchTerm = new SqlParameter("@SearchTerm", DBNull.Value);
+            if (!(sterm == null || sterm == ""))
+                parSearchTerm.Value = sterm;
+            // setting stored procedure OUTPUT value
+            // This return total number of rows, and avoid two database call for data and total number of rows 
+            var spOutput = new SqlParameter
+            {
+                ParameterName = "@TotalCount",
+                SqlDbType = System.Data.SqlDbType.BigInt,
+                Direction = System.Data.ParameterDirection.Output
+            };
+
+            model.PackageList = await db.Database.SqlQuery<GenTourPackageView>("udspGenTourPackageList @Start, @PageSize,@SearchTerm, @TotalCount out",
+                parStart, parEnd, parSearchTerm, spOutput).ToListAsync();
+            model.TotalRecords = int.Parse(spOutput.Value.ToString());
+            return model;
+        }
+        public async Task<GenTourPackageDtlView> GetGenTourPackageDtlView(string linktext)
+        {
+            var parlinktext = new SqlParameter("@linktext", linktext);
+            return await db.Database.SqlQuery<GenTourPackageDtlView>("udspGenTourPackageDtlSelectByLinkText", parlinktext).FirstOrDefaultAsync();
+        }
+        #endregion
+    }
+}

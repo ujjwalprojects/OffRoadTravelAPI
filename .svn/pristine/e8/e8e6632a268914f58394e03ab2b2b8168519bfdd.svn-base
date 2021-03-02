@@ -1,0 +1,34 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace TourTravels.Entities.Models
+{
+    public class EFDBContext:DbContext
+    {
+        public DbSet<utblMstCountries> utblMstCountries { get; set; }
+        public DbSet<utblMstState> utblMstStates { get; set; }
+        public DbSet<utblMstDestination> utblMstDestinations { get; set; }
+        //package type
+        public DbSet<utblMstPackageType> utblMstPackageTypes { get; set; }
+        public DbSet<utblMstItinerarie> utblMstItineraries { get; set; }
+        public DbSet<utblMstInclusion> utblMstInclusions{ get; set; }
+        public DbSet<utblMstExclusion> utblMstExclusions{ get; set; }
+        public DbSet<utblMstTerm> utblMstTerms { get; set; }
+        public DbSet<utblMstBanner> utblMstBanners { get; set; }
+        public DbSet<utblAgent> utblAgents { get; set; }
+
+        public DbSet<utblMstHotelType> utblMstHotelTypes { get; set; }
+        public DbSet<utblMstHotel> utblMstHotels { get; set; }
+        public DbSet<utblMstCabType> utblMstCabTypes { get; set; }
+        public DbSet<utblMstCab> utblMstCabs { get; set; }
+        public DbSet<utblMstCabDriver> utblMstCabDrivers { get; set; }
+        public DbSet<utblMstCabHead> utblMstCabHeads { get; set; }
+
+        public DbSet<utblTourPackage> utblTourPackages { get; set; }
+        public DbSet<utblTourPackageItinerary> utblTourPackageItineraries { get; set; }
+    }
+}

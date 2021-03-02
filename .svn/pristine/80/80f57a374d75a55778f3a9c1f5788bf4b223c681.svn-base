@@ -1,0 +1,33 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using TourTravels.Entities.Dal;
+using TourTravels.Entities.Models;
+
+namespace TourTravels.API.Areas.Admin.Controllers
+{
+    [Authorize]
+    [RoutePrefix("api/packageconfig")]
+    public class PackageConfigController : ApiController
+    {
+        dalTourPackage objPack = new dalTourPackage();
+
+        [HttpPost]
+        [Route("SavePackage")]
+        public async Task<string> SavePackage(utblTourPackage model)
+        {
+            if (ModelState.IsValid)
+            {
+                return await objPack.SavePackageAsync(model);
+            }
+            string messages = string.Join("; ", ModelState.Values
+                                         .SelectMany(x => x.Errors)
+                                         .Select(x => x.ErrorMessage));
+            return "Operation Error: " + messages;
+        }
+    }
+}

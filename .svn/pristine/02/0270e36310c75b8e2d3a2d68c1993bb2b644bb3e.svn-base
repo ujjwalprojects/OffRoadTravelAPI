@@ -1,0 +1,232 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TourTravels.Entities.Models;
+
+namespace TourTravels.Entities.ViewModels
+{
+    public class TourPackageView
+    {
+        public long PackageID { get; set; }
+        public string PackageName { get; set; }
+        public long PackageTypeID { get; set; }
+        public string PackageTypeName { get; set; }
+        public string PackageRouting { get; set; }
+        public string PickupPoint { get; set; }
+        public string DropPoint { get; set; }
+        public int TotalDays { get; set; }
+        public decimal BaseFare { get; set; }
+        public string PackageDesc { get; set; }
+        public decimal FinalFare { get; set; }
+        public long PackageHitCount { get; set; }
+        public bool IsActive { get; set; }
+        public string LinkText { get; set; }
+        public string MetaText { get; set; }
+        public string MetaDesc { get; set; }
+    }
+    public class PackageBriefInfo
+    {
+        public long PackageID { get; set; }
+        public string PackageName { get; set; }
+        public int TotalDays { get; set; }
+    }
+    public class TourPackageVM
+    {
+        public IEnumerable<TourPackageView> Packages { get; set; }
+        public int TotalRecords { get; set; }
+    }
+    public class TourPackageImageVM
+    {
+        public IEnumerable<utblTourPackageImage> PackageImages { get; set; }
+        public int TotalRecords { get; set; }
+    }
+
+
+    //General Section TourPackageVM
+
+    public class GenTourPackageView
+    {
+        public long PackageID { get; set; }
+        public string PackageName { get; set; }
+        public string PackageTypeName { get; set; }
+        public int Days { get; set; }
+        public int Nights { get; set; }
+        public decimal FinalFare { get; set; }
+        public string LinkText { get; set; }
+    }
+
+    public class GenTourPackageDtlView
+    {
+        public long PackageID { get; set; }
+        public string PackageName { get; set; }
+        public string PackageTypeName { get; set; }
+        public string PackageRouting { get; set; }
+        public string PickupPoint { get; set; }
+        public string DropPoint { get; set; }
+        public int Days { get; set; }
+        public int Nights { get; set; }
+        public string PackageDesc  { get; set; }
+        public decimal FinalFare { get; set; }
+    }
+    public class GenTourPackageItineraryView
+    {
+        public long PackageID { get; set; }
+        public string ItineraryName { get; set; }
+        public string ItineraryDesc { get; set; }
+        public int DayNo { get; set; }
+        public string DestinationName { get; set; }
+    }
+    public class GenTourPackageImage {
+        public long PackageImageID { get; set; }
+        public long PackageID { get; set; }
+        public bool IsPackageCover { get; set; }
+        public string PhotoThumbPath { get; set; }
+        public string PhotoNormalPath { get; set; }
+        public string PhotoCaption { get; set; }
+    }
+
+    public class GenTourPackageVM
+    {
+        public IEnumerable<GenTourPackageItineraryView> ItineraryList { get; set; }
+        public IEnumerable<GenTourPackageView> PackageList { get; set; }
+        public int TotalRecords { get; set; }
+    }
+
+
+    public class PackageActivities
+    {
+        [Required]
+        public long PackageActivityID { get; set; }
+        [Required]
+        public long PackageID { get; set; }
+        [Required]
+        public long ActivityID { get; set; }
+        public string ActivityName { get; set; }
+        public string ActivityDesc { get; set; }
+        [Required]
+        public decimal ActivityFare { get; set; }
+        public bool IsSelected { get; set; }
+    }
+    public class PackageInclusions
+    {
+        [Required]
+        public long PackageInclusionID { get; set; }
+        [Required]
+        public long PackageID { get; set; }
+        [Required]
+        public long InclusionID { get; set; }
+        public string InclusionName { get; set; }
+        public string InclusionType { get; set; }
+        [Required]
+        public decimal InclusionFare { get; set; }
+        public bool IsSelected { get; set; }
+    }
+    public class PackageActivitiesSave
+    {
+        [Required]
+        public long PackageActivityID { get; set; }
+        [Required]
+        public long PackageID { get; set; }
+        [Required]
+        public long ActivityID { get; set; }
+        [Required]
+        public decimal ActivityFare { get; set; }
+    }
+    public class PackageInclusionsSave
+    {
+        [Required]
+        public long PackageInclusionID { get; set; }
+        [Required]
+        public long PackageID { get; set; }
+        [Required]
+        public long InclusionID { get; set; }
+        [Required]
+        public decimal InclusionFare { get; set; }
+    }
+    public class PackageActIncSaveModel
+    {
+        [Required]
+        public long PackageID { get; set; }
+        public List<PackageActivitiesSave> Activities { get; set; }
+        public List<PackageInclusionsSave> Inclusions { get; set; }
+    }
+    public class PackageExclusions
+    {
+        public long PackageExclusionID { get; set; }
+        public long PackageID { get; set; }
+        public long ExclusionID { get; set; }
+        public string ExclusionName { get; set; }
+        public bool IsSelected { get; set; }
+    }
+    public class PackageTerms
+    {
+        public long PackageTermsID { get; set; }
+        public long PackageID { get; set; }
+        public long TermID { get; set; }
+        public string TermName { get; set; }
+        public bool IsSelected { get; set; }
+    }
+    public class PackageCancellations
+    {
+        public long PackageCancID { get; set; }
+        public long PackageID { get; set; }
+        public long CancellationID { get; set; }
+        public string CancellationDesc { get; set; }
+        public bool IsSelected { get; set; }
+    }
+    public class PackageExclusionsSave
+    {
+        [Required]
+        public long PackageExclusionID { get; set; }
+        [Required]
+        public long PackageID { get; set; }
+        [Required]
+        public long ExclusionID { get; set; }
+    }
+    public class PackageTermsSave
+    {
+        [Required]
+        public long PackageTermsID { get; set; }
+        [Required]
+        public long PackageID { get; set; }
+        [Required]
+        public long TermID { get; set; }
+    }
+    public class PackageCancellationsSave
+    {
+        [Required]
+        public long PackageCancID { get; set; }
+        [Required]
+        public long PackageID { get; set; }
+        [Required]
+        public long CancellationID { get; set; }
+    }
+    public class PackageExcTermSaveModel
+    {
+        [Required]
+        public long PackageID { get; set; }
+        public List<PackageExclusionsSave> Exclusions { get; set; }
+        public List<PackageTermsSave> Terms { get; set; }
+        public List<PackageCancellationsSave> Cancellations { get; set; }
+    }
+    public class PackageItineraryView
+    {
+        public long PackageItineraryID { get; set; }
+        public long PackageID { get; set; }
+        public long ItineraryID { get; set; }
+        public string ItineraryName { get; set; }
+        public int DayNo { get; set; }
+        public string ItineraryRemarks { get; set; }
+        public long? OvernightDestinationID { get; set; }
+        public string DestinationName { get; set; }
+        public string OvernightDestination { get; set; }
+        public bool SightSeeing { get; set; }
+        public bool Breakfast { get; set; }
+        public bool Lunch { get; set; }
+        public bool Dinner { get; set; }
+        public bool Stay { get; set; }
+    }
+}

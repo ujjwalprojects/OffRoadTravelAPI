@@ -1,0 +1,48 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TourTravels.Entities.Models;
+using System.Data.Entity;
+
+namespace TourTravels.Entities.Dal
+{
+    public class dalTourPackage
+    {
+        EFDBContext db = new EFDBContext();
+
+        public async Task<string> SavePackageAsync(utblTourPackage model)
+        {
+            try
+            {
+                var parPackID = new SqlParameter("@PackageID", model.PackageID);
+                var parPackName = new SqlParameter("@PackageName", model.PackageName);
+                var parPackType = new SqlParameter("@PackageTypeID", model.PackageTypeID);
+                var parPackRouting = new SqlParameter("@PackageRouting", model.PackageRouting ?? "");
+                var parPickup = new SqlParameter("@PickupPoint", model.PickupPoint ?? "");
+                var parDrop = new SqlParameter("@DropPoint", model.DropPoint ?? "");
+                var parDays = new SqlParameter("@TotalDays", model.TotalDays);
+                var parBaseFare = new SqlParameter("@BaseFare", model.BaseFare);
+                var parPackDesc = new SqlParameter("@PackageDesc", model.PackageDesc ?? "");
+                var parPackLink = new SqlParameter("@LinkText", model.LinkText);
+                var parMetaText = new SqlParameter("@MetaText", model.MetaText ?? "");
+                var parMetaDesc = new SqlParameter("@MetaDesc", model.MetaDesc ?? "");
+
+                return await db.Database.SqlQuery<string>("udspTourPackageSave @PackageID, @PackageName, @PackageTypeID, @PackageRouting, @PickupPoint, @DropPoint"
+                    + ",@TotalDays, @BaseFare, @PackageDesc, @LinkText, @MetaText, @MetaDesc",
+                    parPackID, parPackName, parPackType, parPackRouting, parPickup, parDrop,
+                    parDays, parBaseFare, parPackDesc, parPackLink, parMetaText, parMetaDesc).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+        public async Task<IEnumerable<utblTourPackageItinerary>> GetItinerariesByIDAsync(long id)
+        {
+            return await db.utblTourPackageItineraries.Where(x => x.PackageID == id).ToListAsync();
+        }
+    }
+}

@@ -22,6 +22,7 @@ namespace TourTravels.Entities.ViewModels
         public string PackageDesc { get; set; }
         public decimal FinalFare { get; set; }
         public long PackageHitCount { get; set; }
+        
         public bool IsActive { get; set; }
         public string LinkText { get; set; }
         public string MetaText { get; set; }
@@ -194,6 +195,7 @@ namespace TourTravels.Entities.ViewModels
         public string PhotoThumbPath { get; set; }
         public string PhotoNormalPath { get; set; }
         public string FarePer { get; set; }
+        public bool IsPriceVisible { get; set; }
     }
     public class GenOfferTourPackageView
     {
@@ -223,6 +225,7 @@ namespace TourTravels.Entities.ViewModels
         public string PackageDesc { get; set; }
         public decimal FinalFare { get; set; }
         public string FarePer { get; set; }
+        public bool IsPriceVisible { get; set; }
     }
     public class GenTourPackageItineraryView
     {

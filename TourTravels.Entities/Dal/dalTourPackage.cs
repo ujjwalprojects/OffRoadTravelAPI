@@ -36,11 +36,12 @@ namespace TourTravels.Entities.Dal
                 var parMetaDesc = new SqlParameter("@MetaDesc", model.MetaDesc ?? "");
                 var parShowPack = new SqlParameter("@ShowPackage", model.ShowPackage);
                 var parFarePer = new SqlParameter("@FarePer", model.FarePer);
+                var parShowPrice = new SqlParameter("@ShowPrice", model.IsPriceVisible);
 
                 return await db.Database.SqlQuery<string>("udspTourPackageSave @PackageID, @PackageName, @PackageTypeID, @PackageRouting, @PickupPoint, @DropPoint"
-                    + ",@TotalDays, @BaseFare, @PackageDesc, @LinkText, @MetaText, @MetaDesc,@ShowPackage, @FarePer",
+                    + ",@TotalDays, @BaseFare, @PackageDesc, @LinkText, @MetaText, @MetaDesc,@ShowPackage, @FarePer,@ShowPrice",
                     parPackID, parPackName, parPackType, parPackRouting, parPickup, parDrop,
-                    parDays, parBaseFare, parPackDesc, parPackLink, parMetaText, parMetaDesc, parShowPack, parFarePer).FirstOrDefaultAsync();
+                    parDays, parBaseFare, parPackDesc, parPackLink, parMetaText, parMetaDesc, parShowPack, parFarePer, parShowPrice).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {

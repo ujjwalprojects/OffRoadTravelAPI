@@ -25,6 +25,7 @@ namespace TourTravels.Entities.Models
         public decimal FinalFare { get; set; }
         public string FarePer { get; set; }
         public long PackageHitCount { get; set; }
+        public bool IsPriceVisible { get; set; }
         public bool IsActive { get; set; }
         public string LinkText { get; set; }
         public string MetaText { get; set; }
